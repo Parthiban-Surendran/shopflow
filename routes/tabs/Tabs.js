@@ -1,4 +1,4 @@
-import { StyleSheet, Image, TouchableOpacity } from "react-native";
+import { StyleSheet, Image,Text, TouchableOpacity } from "react-native";
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
@@ -16,6 +16,7 @@ const Tab = createBottomTabNavigator();
 
 const Tabs = ({ navigation, route }) => {
   const { user } = route.params;
+  console.log(route)
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -32,39 +33,50 @@ const Tabs = ({ navigation, route }) => {
 
         tabBarIcon: ({ focused }) => {
           let routename = route.name;
+
           if (routename == "home") {
             return (
+            <>
               <TouchableOpacity disabled>
                 {focused == true ? (
                   <Image
                     source={HomeIconActive}
                     style={StyleSheet.tabIconStyle}
                   />
+
                 ) : (
                   <Image source={HomeIcon} style={StyleSheet.tabIconStyle} />
                 )}
               </TouchableOpacity>
+              <Text>Home</Text>
+              </>
+
             );
           } else if (routename == "categories") {
             return (
+            <>
               <TouchableOpacity disabled>
                 {focused == true ? (
                   <Ionicons
-                    name="ios-apps-sharp"
+                    name="apps"
                     size={29}
                     color={colors.primary}
                   />
                 ) : (
                   <Ionicons
-                    name="ios-apps-sharp"
+                    name="apps"
                     size={29}
                     color={colors.muted}
                   />
                 )}
               </TouchableOpacity>
+              <Text>Category</Text>
+              </>
+
             );
           } else if (routename == "myorder") {
             return (
+            <>
               <TouchableOpacity disabled>
                 {focused == true ? (
                   <Ionicons
@@ -80,9 +92,13 @@ const Tabs = ({ navigation, route }) => {
                   />
                 )}
               </TouchableOpacity>
+                            <Text>Orders</Text>
+              </>
+
             );
           } else if (routename == "user") {
             return (
+           <>
               <TouchableOpacity disabled>
                 {focused == true ? (
                   <Image
@@ -93,10 +109,14 @@ const Tabs = ({ navigation, route }) => {
                   <Image source={userIcon} style={StyleSheet.tabIconStyle} />
                 )}
               </TouchableOpacity>
+              <Text>Profile</Text>
+              </>
             );
           }
         },
         tabBarStyle: {
+                  backgroundColor: colors.tabBarBackground,  // Tab bar background color
+
           borderTopLeftRadius: 20,
           borderTopRightRadius: 20,
           backgroundColor: colors.white,
@@ -147,5 +167,6 @@ const styles = StyleSheet.create({
   tabIconStyle: {
     width: 10,
     height: 10,
+    color:"#111827"
   },
 });

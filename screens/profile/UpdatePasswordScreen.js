@@ -5,11 +5,12 @@ import { colors, network } from "../../constants";
 import CustomInput from "../../components/CustomInput";
 import CustomButton from "../../components/CustomButton";
 import CustomAlert from "../../components/CustomAlert/CustomAlert";
+import EncryptedStorage from "react-native-encrypted-storage";
 
 const UpdatePasswordScreen = ({ navigation, route }) => {
   const { userID } = route.params;
   const [error, setError] = useState("");
-  const [currnetPassword, setCurrentPassword] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setCconfirmPassword] = useState("");
   const [alertType, setAlertType] = useState("error");
@@ -18,7 +19,7 @@ const UpdatePasswordScreen = ({ navigation, route }) => {
   myHeaders.append("Content-Type", "application/json");
 
   var raw = JSON.stringify({
-    password: currnetPassword,
+    password: currentPassword,
     newPassword: newPassword,
   });
 
@@ -30,15 +31,16 @@ const UpdatePasswordScreen = ({ navigation, route }) => {
   };
 
   // method to update the password by the check the current password
-  const updatePasswordHandle = () => {
-    if (currnetPassword == newPassword) {
+  const updatePasswordHandle = async() => {
+  const token = await EncryptedStorage.getItem("authToken")
+    if (currentPassword == newPassword) {
       setError("You are not allowed to set the previous used password");
     } else if (newPassword != confirmPassword) {
       setError("Password not matched");
     } else {
       setError("");
       fetch(
-        network.serverip + "/reset-password?id=" + String(userID),
+        network.serverip + "/forgetpwd/resetpwd?token" + String(token),
         requestOptions
       ) // API call
         .then((response) => response.json())
@@ -49,7 +51,6 @@ const UpdatePasswordScreen = ({ navigation, route }) => {
         .catch((error) => {
           setAlertType("error");
           setError(error.message);
-          console.log("error", error.message);
         });
     }
   };
@@ -82,7 +83,7 @@ const UpdatePasswordScreen = ({ navigation, route }) => {
       <View style={styles.formContainer}>
         <CustomAlert message={error} type={alertType} />
         <CustomInput
-          value={currnetPassword}
+          value={currentPassword}
           setValue={setCurrentPassword}
           placeholder={"Current Password"}
           secureTextEntry={true}

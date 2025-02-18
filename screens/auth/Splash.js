@@ -1,15 +1,15 @@
 import { StyleSheet, Image, View } from "react-native";
 import React, { useEffect } from "react";
-import { colors } from "../../constants";
-import logo from "../../assets/logo/logo_white.png";
+import { colors,network } from "../../constants";
+import logo from "../../assets/logo/download.jpeg";
 
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import EncryptedStorage from 'react-native-encrypted-storage';
 
 const Splash = ({ navigation }) => {
   //method to fetch the authUser data from aync storage if there is any and login the Dashboard or Home Screen according to the user type
   _retrieveData = async () => {
     try {
-      const value = await AsyncStorage.getItem("authUser");
+      const value = await EncryptedStorage.getItem("authUser");
       if (value !== null) {
         let user = JSON.parse(value); // covert the authUser value to json
         if (user.userType === "ADMIN") {
@@ -17,13 +17,14 @@ const Splash = ({ navigation }) => {
             navigation.replace("dashboard", { authUser: JSON.parse(value) }); // navigate to Admin dashboard
           }, 2000);
         } else {
+
           setTimeout(() => {
             navigation.replace("tab", { user: JSON.parse(value) }); // navigate to User Home screen
           }, 2000);
         }
       } else {
         setTimeout(() => {
-          navigation.replace("tab",{ user: {name:"Guest"} }); // // navigate to login screen if there is no authUser store in aysnc storage
+          navigation.replace("tab",{ user: {name:"Guest",email:"guest@gmail.com"} }); // // navigate to login screen if there is no authUser store in aysnc storage
         }, 2000);
       }
     } catch (error) {
@@ -48,7 +49,7 @@ export default Splash;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.primary,
+    backgroundColor: "white",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -59,7 +60,7 @@ const styles = StyleSheet.create({
   },
   logo: {
     resizeMode: "contain",
-    width: 80,
-    height: 80,
+    width: 180,
+    height: 260,
   },
 });

@@ -7,119 +7,135 @@
 //  KeyboardAvoidingView,
 //  ScrollView,
 //} from "react-native";
-//
 //import React, { useState } from "react";
-//import { colors, network } from "../../constants";
+//import {useDispatch,useSelector} from "react-redux"
+//import { colors,network } from "../../constants";
 //import CustomInput from "../../components/CustomInput";
-//import header_logo from "../../assets/logo/logo.png";
+//import header_logo from "../../assets/logo/download.jpeg";
 //import CustomButton from "../../components/CustomButton";
 //import CustomAlert from "../../components/CustomAlert/CustomAlert";
 //import ProgressDialog from "react-native-progress-dialog";
 //import InternetConnectionAlert from "react-native-internet-connection-alert";
-//import AsyncStorage from "@react-native-async-storage/async-storage";
+//import EncryptedStorage from 'react-native-encrypted-storage';
+//import * as actions from "../../states/actionTypes/actionTypes";
+//import { fetchCart } from "../../states/actionCreaters/actionCreaters";
 //
-//const LoginScreen = ({ navigation }) => {
+//const LoginScreen = ({ navigation ,route}) => {
+//  const { fromScreen,product } = route.params || {}; // Get the 'fromScreen' parameter
+//
 //  const [email, setEmail] = useState("");
 //  const [password, setPassword] = useState("");
 //  const [error, setError] = useState("");
 //  const [isloading, setIsloading] = useState(false);
+//  const dispatch = useDispatch()
 //
-//  //method to store the authUser to aync storage
-//  _storeData = async (user) => {
+//  const _storeData = async (user) => {
 //    try {
-//      AsyncStorage.setItem("authUser", JSON.stringify(user));
+//      await EncryptedStorage.setItem("authUser", JSON.stringify(user));
 //    } catch (error) {
-//      console.log(error);
-//      setError(error);
+//      setError("Failed to store user data.");
 //    }
 //  };
 //
-//  var myHeaders = new Headers();
-//  myHeaders.append("Content-Type", "application/json");
-//
-//  var raw = JSON.stringify({
-//    email: email,
-//    password: password,
-//  });
-//
-//  var requestOptions = {
-//    method: "POST",
-//    headers: myHeaders,
-//    body: raw,
-//    redirect: "follow",
-//  };
-//
-//  //method to validate the user credentials and navigate to Home Screen / Dashboard
-//  const loginHandle = () => {
+//  const loginHandle = async () => {
 //    setIsloading(true);
-//    //[check validation] -- Start
-//    // if email does not contain @ sign
-//    if (email == "") {
+//    setError(""); // Clear previous errors
+//
+//    // Input validation
+//    // Input validation
+//    if (!email.trim()) {
 //      setIsloading(false);
 //      return setError("Please enter your email");
 //    }
-//    if (password == "") {
+//    if (!password.trim()) {
 //      setIsloading(false);
 //      return setError("Please enter your password");
 //    }
-//    if (!email.includes("@")) {
+//
+//    // Email format validation using regex
+//    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s.@]+$/;
+//    if (!emailPattern.test(email)) {
 //      setIsloading(false);
 //      return setError("Email is not valid");
 //    }
-//    // length of email must be greater than 5 characters
+//
 //    if (email.length < 6) {
 //      setIsloading(false);
 //      return setError("Email is too short");
 //    }
-//    // length of password must be greater than 5 characters
 //    if (password.length < 6) {
 //      setIsloading(false);
-//      return setError("Password must be 6 characters long");
+//      return setError("Password must be at least 6 characters");
 //    }
-//    //[check validation] -- End
 //
-//    fetch(network.serverip + "/login", requestOptions) // API call
-//      .then((response) => response.json())
-//      .then((result) => {
-//        if (
-//          result.status == 200 ||
-//          (result.status == 1 && result.success != false)
-//        ) {
-//          if (result?.data?.userType == "ADMIN") {
-//            //check the user type if the type is ADMIN then navigate to Dashboard else navigate to User Home
-//            _storeData(result.data);
-//            setIsloading(false);
-//            navigation.replace("dashboard", { authUser: result.data }); // naviagte to Admin Dashboard
-//          } else {
-//            _storeData(result.data);
-//            setIsloading(false);
-//            navigation.replace("tab", { user: result.data }); // naviagte to User Dashboard
-//          }
-//        } else {
-//          setIsloading(false);
-//          return setError(result.message);
-//        }
-//      })
-//      .catch((error) => {
-//        setIsloading(false);
-//        console.log("error", setError(error.message));
+//    // API request
+//    try {
+//      const response = await fetch(`${network.serverip}/user/login`, {
+//        method: "POST",
+//        headers: {
+//          "Content-Type": "application/json",
+//        },
+//        body: JSON.stringify({ email, password }),
 //      });
+//      await EncryptedStorage.setItem('user',JSON.stringify(email))
+//      const text = await response.text();
+//
+//      let result;
+//      try {
+//        result = JSON.parse(text);
+//      } catch (jsonError) {
+//        throw new Error("Invalid JSON response from server");
+//      }
+//
+//      await EncryptedStorage.setItem("userid",JSON.stringify(result.data.id))
+//      await EncryptedStorage.setItem("authToken",(result.token))
+//
+//
+//      if (response.ok && result?.status === "success") {
+//      const token = await EncryptedStorage.getItem("authToken")
+//      const userid = await EncryptedStorage.getItem("userid")
+//            await EncryptedStorage.setItem('isLoggedIn',"true")
+//             dispatch({ type: actions.LOGIN_SUCCESS, payload: response.data });
+//
+//                  if (token) {
+//                    dispatch(fetchCart(userid));
+//                  } else {
+//                    console.error("Token is missing");
+//                  }
+//        _storeData(result.data);
+//        setIsloading(false);
+//
+//        if (fromScreen && product) {
+//          navigation.replace(fromScreen,{product:product});
+//        } else if(fromScreen) {
+//          navigation.replace(fromScreen);
+//
+//        }
+//        else{
+//          navigation.replace("tab", { user: result.data });
+//
+//        }
+//      } else {
+//        setIsloading(false);
+//        setError(result.message || "Login failed");
+//      }
+//    } catch (error) {
+//      setIsloading(false);
+//      setError("Something went wrong. Please try again.");
+//    }
 //  };
 //
 //  return (
-//    <InternetConnectionAlert onChange={(connectionState) => {}}>
-//      <KeyboardAvoidingView
-//        // behavior={Platform.OS === "ios" ? "padding" : "height"}
-//        style={styles.container}
-//      >
+//    <InternetConnectionAlert onChange={() => {}}>
+//      <KeyboardAvoidingView style={styles.container}>
 //        <ScrollView style={{ flex: 1, width: "100%" }}>
-//          <ProgressDialog visible={isloading} label={"Login ..."} />
-//          <StatusBar></StatusBar>
-//          <View style={styles.welconeContainer}>
+//          <ProgressDialog visible={isloading} label={"Logging in..."} />
+//          <StatusBar />
+//          <View style={styles.welcomeContainer}>
 //            <View>
-//              <Text style={styles.welcomeText}>Welcome to EasyBuy</Text>
+//              <Text style={styles.welcomeText}>Welcome to ShopFlow</Text>
 //              <Text style={styles.welcomeParagraph}>
-//                make your ecommerce easy
+//                Make your e-commerce easy
 //              </Text>
 //            </View>
 //            <View>
@@ -134,7 +150,7 @@
 //            <CustomInput
 //              value={email}
 //              setValue={setEmail}
-//              placeholder={"Username"}
+//              placeholder={"Email"}
 //              placeholderTextColor={colors.muted}
 //              radius={5}
 //            />
@@ -149,14 +165,14 @@
 //            <View style={styles.forgetPasswordContainer}>
 //              <Text
 //                onPress={() => navigation.navigate("forgetpassword")}
-//                style={styles.ForgetText}
+//                style={styles.forgetText}
 //              >
-//                Forget Password?
+//                Forgot Password?
 //              </Text>
 //            </View>
 //          </View>
 //        </ScrollView>
-//        <View style={styles.buttomContainer}>
+//        <View style={styles.buttonContainer}>
 //          <CustomButton text={"Login"} onPress={loginHandle} />
 //        </View>
 //        <View style={styles.bottomContainer}>
@@ -165,7 +181,7 @@
 //            onPress={() => navigation.navigate("signup")}
 //            style={styles.signupText}
 //          >
-//            signup
+//            Sign Up
 //          </Text>
 //        </View>
 //      </KeyboardAvoidingView>
@@ -178,29 +194,24 @@
 //const styles = StyleSheet.create({
 //  container: {
 //    width: "100%",
-//    flexDirecion: "row",
 //    backgroundColor: colors.light,
 //    alignItems: "center",
 //    justifyContent: "center",
 //    padding: 20,
 //    flex: 1,
 //  },
-//  welconeContainer: {
+//  welcomeContainer: {
 //    width: "100%",
-//    display: "flex",
 //    flexDirection: "row",
 //    justifyContent: "space-around",
 //    alignItems: "center",
 //    height: "30%",
-//    // padding:15
 //  },
 //  formContainer: {
 //    flex: 3,
 //    justifyContent: "flex-start",
 //    alignItems: "center",
-//    display: "flex",
 //    width: "100%",
-//    flexDirecion: "row",
 //    padding: 5,
 //  },
 //  logo: {
@@ -220,23 +231,20 @@
 //  forgetPasswordContainer: {
 //    marginTop: 10,
 //    width: "100%",
-//    display: "flex",
 //    flexDirection: "row",
 //    justifyContent: "flex-end",
 //    alignItems: "center",
 //  },
-//  ForgetText: {
+//  forgetText: {
 //    fontSize: 15,
 //    fontWeight: "600",
 //  },
-//  buttomContainer: {
-//    display: "flex",
+//  buttonContainer: {
 //    justifyContent: "center",
 //    width: "100%",
 //  },
 //  bottomContainer: {
 //    marginTop: 10,
-//    display: "flex",
 //    flexDirection: "row",
 //    justifyContent: "center",
 //  },
@@ -249,7 +257,6 @@
 //  screenNameContainer: {
 //    marginTop: 10,
 //    width: "100%",
-//    display: "flex",
 //    flexDirection: "row",
 //    justifyContent: "flex-start",
 //    alignItems: "center",
@@ -268,81 +275,95 @@ import {
   Image,
   Text,
   View,
+  Alert,
   StatusBar,
   KeyboardAvoidingView,
   ScrollView,
 } from "react-native";
 import React, { useState } from "react";
-import {useDispatch,useSelector} from "react-redux"
-import { colors } from "../../constants";
+import { useDispatch, useSelector } from "react-redux";
+import { colors, network } from "../../constants";
 import CustomInput from "../../components/CustomInput";
 import header_logo from "../../assets/logo/download.jpeg";
 import CustomButton from "../../components/CustomButton";
 import CustomAlert from "../../components/CustomAlert/CustomAlert";
 import ProgressDialog from "react-native-progress-dialog";
 import InternetConnectionAlert from "react-native-internet-connection-alert";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import EncryptedStorage from 'react-native-encrypted-storage';
 import * as actions from "../../states/actionTypes/actionTypes";
 import { fetchCart } from "../../states/actionCreaters/actionCreaters";
 
-const LoginScreen = ({ navigation }) => {
+const LoginScreen = ({ navigation, route }) => {
+  const { fromScreen, product } = route.params || {};
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isloading, setIsloading] = useState(false);
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
+  console.log(fromScreen,product)
 
-  // Store user data in AsyncStorage
   const _storeData = async (user) => {
     try {
-      await AsyncStorage.setItem("authUser", JSON.stringify(user));
+      await EncryptedStorage.setItem("authUser", JSON.stringify(user));
     } catch (error) {
-      console.log(error);
       setError("Failed to store user data.");
     }
   };
 
+  // **Email Validation Function**
+  const isValidEmail = (email) => {
+const emailRegex = /^[a-zA-Z]+([a-zA-Z0-9._%+@$&-]*[a-zA-Z0-9])?@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(email);
+  };
+
+  // **Password Validation Function**
+  const isValidPassword = (password) => {
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    return passwordRegex.test(password);
+  };
+
   const loginHandle = async () => {
     setIsloading(true);
-    setError(""); // Clear previous errors
+    setError("");
 
-    // Input validation
-    if (!email) {
+    // **Input validation**
+    if (!email.trim()) {
       setIsloading(false);
       return setError("Please enter your email");
     }
-    if (!password) {
+    if (!isValidEmail(email)) {
+    console.log("True")
+      setIsloading(false);
+      Alert.alert("Error","Invalid Email. Please Enter Valid Email")
+      return setError("Invalid email format. No special characters before '@'.");
+    }
+
+    if (!password.trim()) {
       setIsloading(false);
       return setError("Please enter your password");
     }
-    if (!email.includes("@")) {
+    if (!isValidPassword(password)) {
       setIsloading(false);
-      return setError("Email is not valid");
-    }
-    if (email.length < 6) {
-      setIsloading(false);
-      return setError("Email is too short");
-    }
-    if (password.length < 6) {
-      setIsloading(false);
-      return setError("Password must be at least 6 characters");
+        Alert.alert("Error","Invalid Password. Please Enter Valid Password")
+
+      return setError(
+        "Password must be at least 8 characters, contain uppercase, lowercase, number, and special character."
+      );
     }
 
-    // API request
     try {
-      const response = await fetch("https://shopflow.onrender.com/user/login", {
+      const response = await fetch(`${network.serverip}/user/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, password }),
       });
-        await AsyncStorage.setItem('user',JSON.stringify(email))
-      // Get raw text response
+console.log("jkjk",response.data)
+      await EncryptedStorage.setItem("user", JSON.stringify(email));
       const text = await response.text();
-      console.log("Raw Response:", text);
 
-      // Try parsing JSON
       let result;
       try {
         result = JSON.parse(text);
@@ -350,36 +371,32 @@ const LoginScreen = ({ navigation }) => {
         throw new Error("Invalid JSON response from server");
       }
 
-      // Handle API response
-      console.log("Parsed Response:", result);
-      console.log(result.data.id,result.token)
-
-      await AsyncStorage.setItem("userid",JSON.stringify(result.data.id))
-            await AsyncStorage.setItem("authToken",(result.token))
-
+      await EncryptedStorage.setItem("userid", JSON.stringify(result.data.id));
+      await EncryptedStorage.setItem("authToken", result.token);
 
       if (response.ok && result?.status === "success") {
-      const token = await AsyncStorage.getItem("authToken")
-      const userid = await AsyncStorage.getItem("userid")
-            await AsyncStorage.setItem('isLoggedIn',"true")
-             dispatch({ type: actions.LOGIN_SUCCESS, payload: response.data });
+        const token = await EncryptedStorage.getItem("authToken");
+        const userid = await EncryptedStorage.getItem("userid");
 
-                   // After login success, immediately fetch the cart
-                  if (token) {
-                  console.log("entered token",token)
-                    // Proceed with the action
-                    dispatch(fetchCart(userid));
-                  } else {
-                    // Handle the case when token is not available
-                    console.error("Token is missing");
-                  }
-        _storeData(result.data); // Save user data
+        await EncryptedStorage.setItem("isLoggedIn", "true");
+        dispatch({ type: actions.LOGIN_SUCCESS, payload: result.data });
+
+        if (token) {
+          dispatch(fetchCart(userid));
+        } else {
+          console.error("Token is missing");
+        }
+
+        _storeData(result.data);
         setIsloading(false);
-        if (result?.status === "temp") {
-          navigation.replace("dashboard", { authUser: result.data });
+
+        if (fromScreen && product) {
+          navigation.replace(fromScreen, { product });
+          return
+        } else if (fromScreen) {
+          navigation.replace(fromScreen);
         } else {
           navigation.replace("tab", { user: result.data });
-
         }
       } else {
         setIsloading(false);
@@ -387,7 +404,6 @@ const LoginScreen = ({ navigation }) => {
       }
     } catch (error) {
       setIsloading(false);
-      console.log("Login Error:", error.message);
       setError("Something went wrong. Please try again.");
     }
   };

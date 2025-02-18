@@ -1,5 +1,6 @@
 export default colors = {
   primary: "#FB6831",
+  text:"#EDEDED",
   primary_light: "#FFC8B2",
   primary_shadow: "#FB6A04",
   secondary: "#31C4FB",
@@ -13,4 +14,6 @@ export default colors = {
   dark: "#343A3F",
   muted: "#707981",
   white: "#FFFFFF",
+    tabBarBackground: "#FFFFFF",  // Tab bar background color (white)
+
 };

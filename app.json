@@ -1,35 +1,40 @@
 {
   "expo": {
-    "name": "EasyBuy",
-    "slug": "EasyBuy",
-    "sdkVersion": "50.0.0",
+    "name": "ShopFlow",
+    "slug": "shopflow",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/logo/llogo.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/logo/llogo.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "updates": {
-      "fallbackToCacheTimeout": 0
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/beccb52e-d8b0-472e-9d39-6bc88c1b4a1d"
     },
     "assetBundlePatterns": [
       "**/*"
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.abidrazaa.EasyBuy"
+      "bundleIdentifier": "com.abidrazaa.ShopFlow"
     },
     "android": {
+      "newArchEnabled": false,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/logo/llogo.png",
         "backgroundColor": "#FFFFFF"
       },
-      "package": "com.abidrazaa.EasyBuy",
+      "package": "com.abidrazaa.ShopFlow",
       "permissions": [
-        "android.permission.RECORD_AUDIO"
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_NETWORK_STATE"
+
       ]
     },
     "web": {
@@ -41,8 +46,22 @@
         {
           "photosPermission": "The app accesses your photos to let you share them with your friends."
         }
+      ],
+      [
+        "@stripe/stripe-react-native",
+        {
+          "enableGooglePay": true
+        }
       ]
-    ]
-
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "beccb52e-d8b0-472e-9d39-6bc88c1b4a1d"
+      }
+    },
+    "owner": "parthiban98",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    }
   }
 }

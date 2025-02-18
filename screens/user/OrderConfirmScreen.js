@@ -2,18 +2,18 @@ import { StyleSheet, Image, Text, View, StatusBar } from "react-native";
 import React, { useEffect, useState } from "react";
 import SuccessImage from "../../assets/image/success.png";
 import CustomButton from "../../components/CustomButton";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import EncryptedStorage from 'react-native-encrypted-storage';
+import {  network } from "../../constants";
 
-const OrderConfirmScreen = ({ navigation }) => {
+const OrderConfirmScreen = ({ navigation,route }) => {
+    const data = route.temp
   const [user, setUser] = useState({});
 
-  //method to get authUser from async storage
   const getUserData = async () => {
-    const value = await AsyncStorage.getItem("authUser");
+    const value = await EncryptedStorage.getItem("authUser");
     setUser(JSON.parse(value));
   };
 
-  //fetch user data on initial render
   useEffect(() => {
     getUserData();
   }, []);

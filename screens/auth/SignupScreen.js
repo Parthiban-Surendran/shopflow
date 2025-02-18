@@ -1,163 +1,389 @@
+//import React, { useState } from "react";
+//import {
+//  StyleSheet,
+//  Text,
+//  View,
+//  TextInput,
+//  TouchableOpacity,
+//  ActivityIndicator,
+//  Alert,
+//  ScrollView,
+//  KeyboardAvoidingView,
+//  Image,
+//} from "react-native";
+//import axios from "axios";
+//import { colors,network } from "../../constants";
+//import header_logo from "../../assets/logo/logo.png";
+//
+//const SignupScreen = ({ navigation }) => {
+//  const [name, setName] = useState("");
+//  const [email, setEmail] = useState("");
+//  const [password, setPassword] = useState("");
+//  const [confirmPassword, setConfirmPassword] = useState("");
+//  const [loading, setLoading] = useState(false);
+//    const handleSignUp = async () => {
+//    if (!name || !email || !password || !confirmPassword) {
+//      Alert.alert("Error", "Please fill in all fields");
+//      return;
+//    }
+//
+//    if (!/\S+@\S+\.\S+/.test(email)) {
+//      Alert.alert("Error", "Please enter a valid email address");
+//      return;
+//    }
+//
+//    if (password.length < 6) {
+//      Alert.alert("Error", "Password must be at least 6 characters");
+//      return;
+//    }
+//
+//    if (password !== confirmPassword) {
+//      Alert.alert("Error", "Passwords do not match");
+//      return;
+//    }
+//
+//    setLoading(true);
+//    try {
+//      const response = await axios.post(
+//        `${network.serverip}/user/signup`,
+//        {
+//          name,
+//          email,
+//          password,
+//        }
+//      );
+//      if (response.data.status === "success") {
+//        Alert.alert("Success", "Registration Successful! Please login.");
+//        navigation.navigate("login");
+//      } else {
+//        Alert.alert("Error", response.data.message || "Registration failed");
+//      }
+//    } catch (error) {
+//      Alert.alert("Error", "Something went wrong. Please try again.");
+//      console.error("Signup error:", error);
+//    } finally {
+//      setLoading(false);
+//    }
+//  };
+//
+//  return (
+//    <KeyboardAvoidingView style={styles.container} behavior="padding">
+//      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+//
+//
+//        <View style={styles.logoContainer}>
+//          <Image source={header_logo} style={styles.logo} />
+//        </View>
+//
+//        <View style={styles.formContainer}>
+//          <Text style={styles.title}>Sign Up</Text>
+//
+//          <TextInput
+//            style={styles.input}
+//            placeholder="Full Name"
+//            value={name}
+//            onChangeText={setName}
+//          />
+//
+//          <TextInput
+//            style={styles.input}
+//            placeholder="Email"
+//            value={email}
+//            onChangeText={setEmail}
+//            keyboardType="email-address"
+//            autoCapitalize="none"
+//          />
+//
+//          <TextInput
+//            style={styles.input}
+//            placeholder="Password"
+//            value={password}
+//            secureTextEntry
+//            onChangeText={setPassword}
+//          />
+//
+//          <TextInput
+//            style={styles.input}
+//            placeholder="Confirm Password"
+//            value={confirmPassword}
+//            secureTextEntry
+//            onChangeText={setConfirmPassword}
+//          />
+//
+//          {loading ? (
+//            <ActivityIndicator size="large" color={colors.primary} />
+//          ) : (
+//            <TouchableOpacity style={styles.button} onPress={handleSignUp}>
+//              <Text style={styles.buttonText}>Register</Text>
+//            </TouchableOpacity>
+//          )}
+//
+//          <Text
+//            style={styles.link}
+//            onPress={() => navigation.navigate("login")}
+//          >
+//            Already have an account? Login
+//          </Text>
+//        </View>
+//      </ScrollView>
+//    </KeyboardAvoidingView>
+//  );
+//};
+//
+//export default SignupScreen;
+//
+//const styles = StyleSheet.create({
+//  container: {
+//    flex: 1,
+//    backgroundColor: colors.light,
+//    padding: 20,
+//  },
+//  topBarContainer: {
+//    flexDirection: "row",
+//    justifyContent: "flex-start",
+//    marginBottom: 20,
+//  },
+//  backText: {
+//    color: colors.primary,
+//    fontSize: 16,
+//    fontWeight: "bold",
+//  },
+//  logoContainer: {
+//    alignItems: "center",
+//    marginBottom: 20,
+//  },
+//  logo: {
+//    width: 100,
+//    height: 100,
+//    resizeMode: "contain",
+//  },
+//  formContainer: {
+//    flex: 1,
+//    justifyContent: "center",
+//  },
+//  title: {
+//    fontSize: 28,
+//    fontWeight: "bold",
+//    color: colors.dark,
+//    textAlign: "center",
+//    marginBottom: 20,
+//  },
+//  input: {
+//    borderWidth: 1,
+//    borderColor: colors.muted,
+//    borderRadius: 8,
+//    padding: 12,
+//    marginBottom: 15,
+//    backgroundColor: "#fff",
+//    color: colors.dark,
+//  },
+//  button: {
+//    backgroundColor: colors.primary,
+//    padding: 15,
+//    borderRadius: 8,
+//    alignItems: "center",
+//    marginTop: 10,
+//  },
+//  buttonText: {
+//    color: "#fff",
+//    fontSize: 18,
+//    fontWeight: "bold",
+//  },
+//  link: {
+//    marginTop: 15,
+//    color: colors.primary,
+//    textAlign: "center",
+//    fontSize: 16,
+//  },
+//});
+
+
+
+import React, { useState } from "react";
 import {
   StyleSheet,
   Text,
-  Image,
-  StatusBar,
   View,
-  KeyboardAvoidingView,
-  ScrollView,
+  TextInput,
   TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  KeyboardAvoidingView,
+  Image,
 } from "react-native";
-import React, { useState } from "react";
+import axios from "axios";
 import { colors, network } from "../../constants";
-import CustomInput from "../../components/CustomInput";
-import header_logo from "../../assets/logo/logo.png";
-import CustomButton from "../../components/CustomButton";
-import { Ionicons } from "@expo/vector-icons";
-import CustomAlert from "../../components/CustomAlert/CustomAlert";
-import InternetConnectionAlert from "react-native-internet-connection-alert";
+import header_logo from "../../assets/logo/llogo.png";
 
 const SignupScreen = ({ navigation }) => {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [name, setName] = useState("");
-  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  var myHeaders = new Headers();
-  myHeaders.append("Content-Type", "application/json");
-
-  var raw = JSON.stringify({
-    email: email,
-    password: password,
-    name: name,
-    userType: "USER",
+  const [errors, setErrors] = useState({
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
   });
 
-  var requestOptions = {
-    method: "POST",
-    headers: myHeaders,
-    body: raw,
-    redirect: "follow",
+  // Validation Function (Runs on every change)
+  const validateField = (field, value) => {
+    let error = "";
+
+    switch (field) {
+      case "name":
+        if (value.length > 18) {
+          error = "Name should be less than 18 characters";
+        } else if (value.trim() && !/^[a-zA-Z0-9\s]+$/.test(value.trim())) {
+          error = "Name should contain only letters and numbers";
+        }
+        break;
+
+     case "email":
+       if (value.trim() && !/^[a-zA-Z]+([a-zA-Z0-9._%+@$&-]*[a-zA-Z0-9])?@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value)) {
+         error = "Invalid email format (The part before @ cannot start or end with special symbols, and hyphens cannot be in the middle)";
+       }
+       break;
+
+
+      case "password":
+        if (value && !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(value)) {
+          error = "Must be 8+ chars, include UPPER/lower, number & special char";
+        }
+        break;
+
+      case "confirmPassword":
+        if (value && value !== password) {
+          error = "Passwords do not match";
+        }
+        break;
+
+      default:
+        break;
+    }
+
+    setErrors((prevErrors) => ({ ...prevErrors, [field]: error }));
   };
 
-  //method to post the user data to server for user signup using API call
-  const signUpHandle = () => {
-    if (email == "") {
-      return setError("Please enter your email");
+  const handleSignUp = async () => {
+    // Validate all fields before submitting
+    validateField("name", name);
+    validateField("email", email);
+    validateField("password", password);
+    validateField("confirmPassword", confirmPassword);
+
+    // Check if there are any errors
+    if (Object.values(errors).some((error) => error)) return;
+
+    setLoading(true);
+    try {
+      const response = await axios.post(`${network.serverip}/user/signup`, {
+        name,
+        email,
+        password,
+      });
+      console.log(response.data)
+
+      if (response.data.status === "success") {
+        Alert.alert("Success", "Registration Successful! Please login.");
+        navigation.navigate("login");
+      } else {
+        Alert.alert("Error", response.data.message || "Registration failed");
+      }
+    } catch (error) {
+      navigation.replace("login");
+      Alert.alert("Error", "User Already Exists. Please Login!");
+      console.error("Signup error:", error);
+    } finally {
+      setLoading(false);
     }
-    if (name == "") {
-      return setError("Please enter your name");
-    }
-    if (password == "") {
-      return setError("Please enter your password");
-    }
-    if (!email.includes("@")) {
-      return setError("Email is not valid");
-    }
-    if (email.length < 6) {
-      return setError("Email is too short");
-    }
-    if (password.length < 5) {
-      return setError("Password must be 6 characters long");
-    }
-    if (password != confirmPassword) {
-      return setError("password does not match");
-    }
-    fetch(network.serverip + "/register", requestOptions) // API call
-      .then((response) => response.json())
-      .then((result) => {
-        console.log(result);
-        if (result.data["email"] == email) {
-          navigation.navigate("login");
-        }
-      })
-      .catch((error) => console.log("error", setError(error.message)));
   };
+
   return (
-    <InternetConnectionAlert
-      onChange={(connectionState) => {
-        console.log("Connection State: ", connectionState);
-      }}
-    >
-      <KeyboardAvoidingView style={styles.container}>
-        <StatusBar></StatusBar>
-        <View style={styles.TopBarContainer}>
-          <TouchableOpacity
-            onPress={() => {
-              navigation.goBack();
+    <KeyboardAvoidingView style={styles.container} behavior="padding">
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <View style={styles.logoContainer}>
+          <Image source={header_logo} style={styles.logo} />
+        </View>
+
+        <View style={styles.formContainer}>
+          <Text style={styles.title}>Sign Up</Text>
+
+          {/* Name Input */}
+          <TextInput
+            style={styles.input}
+            placeholder="Full Name"
+            value={name}
+            onChangeText={(text) => {
+              setName(text);
+              validateField("name", text);
             }}
-          >
-            <Ionicons
-              name="arrow-back-circle-outline"
-              size={30}
-              color={colors.muted}
-            />
-          </TouchableOpacity>
-        </View>
-        <ScrollView style={{ flex: 1, width: "100%" }}>
-          <View style={styles.welconeContainer}>
-            <Image style={styles.logo} source={header_logo} />
-          </View>
-          <View style={styles.screenNameContainer}>
-            <View>
-              <Text style={styles.screenNameText}>Sign up</Text>
-            </View>
-            <View>
-              <Text style={styles.screenNameParagraph}>
-                Create your account on EasyBuy to get an access to millions of
-                products
-              </Text>
-            </View>
-          </View>
-          <View style={styles.formContainer}>
-            <CustomAlert message={error} type={"error"} />
-            <CustomInput
-              value={name}
-              setValue={setName}
-              placeholder={"Name"}
-              placeholderTextColor={colors.muted}
-              radius={5}
-            />
-            <CustomInput
-              value={email}
-              setValue={setEmail}
-              placeholder={"Email"}
-              placeholderTextColor={colors.muted}
-              radius={5}
-            />
-            <CustomInput
-              value={password}
-              setValue={setPassword}
-              secureTextEntry={true}
-              placeholder={"Password"}
-              placeholderTextColor={colors.muted}
-              radius={5}
-            />
-            <CustomInput
-              value={confirmPassword}
-              setValue={setConfirmPassword}
-              secureTextEntry={true}
-              placeholder={"Confirm Password"}
-              placeholderTextColor={colors.muted}
-              radius={5}
-            />
-          </View>
-        </ScrollView>
-        <View style={styles.buttomContainer}>
-          <CustomButton text={"Sign up"} onPress={signUpHandle} />
-        </View>
-        <View style={styles.bottomContainer}>
-          <Text>Already have an account?</Text>
-          <Text
-            onPress={() => navigation.navigate("login")}
-            style={styles.signupText}
-          >
-            Login
+          />
+          {errors.name ? <Text style={styles.errorText}>{errors.name}</Text> : null}
+
+          {/* Email Input */}
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            value={email}
+            onChangeText={(text) => {
+              setEmail(text);
+              validateField("email", text);
+            }}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+          {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
+
+          {/* Password Input */}
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            value={password}
+            secureTextEntry
+            onChangeText={(text) => {
+              setPassword(text);
+              validateField("password", text);
+            }}
+          />
+          {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
+
+          {/* Confirm Password Input */}
+          <TextInput
+            style={styles.input}
+            placeholder="Confirm Password"
+            value={confirmPassword}
+            secureTextEntry
+            onChangeText={(text) => {
+              setConfirmPassword(text);
+              validateField("confirmPassword", text);
+            }}
+          />
+          {errors.confirmPassword ? <Text style={styles.errorText}>{errors.confirmPassword}</Text> : null}
+
+          {/* Submit Button */}
+          {loading ? (
+            <ActivityIndicator size="large" color={colors.primary} />
+          ) : (
+            <TouchableOpacity
+              style={styles.button}
+              onPress={handleSignUp}
+            >
+              <Text style={styles.buttonText}>Register</Text>
+            </TouchableOpacity>
+          )}
+
+          {/* Login Link */}
+          <Text style={styles.link} onPress={() => navigation.navigate("login")}>
+            Already have an account? Login
           </Text>
         </View>
-      </KeyboardAvoidingView>
-    </InternetConnectionAlert>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -165,83 +391,60 @@ export default SignupScreen;
 
 const styles = StyleSheet.create({
   container: {
-    flexDirecion: "row",
-    backgroundColor: colors.light,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 20,
     flex: 1,
+    backgroundColor: colors.light,
+    padding: 20,
   },
-  TopBarContainer: {
-    width: "100%",
-    display: "flex",
-    flexDirection: "row",
-    justifyContent: "flex-start",
+  logoContainer: {
     alignItems: "center",
-  },
-  welconeContainer: {
-    width: "100%",
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "center",
-    alignItems: "center",
-    height: "15%",
-  },
-  formContainer: {
-    flex: 2,
-    justifyContent: "flex-start",
-    alignItems: "center",
-    display: "flex",
-    width: "100%",
-    flexDirecion: "row",
-    padding: 5,
+    marginBottom: 20,
   },
   logo: {
+    width: 100,
+    height: 100,
     resizeMode: "contain",
-    width: 80,
   },
-  forgetPasswordContainer: {
-    marginTop: 10,
-    width: "100%",
-    display: "flex",
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    alignItems: "center",
-  },
-  ForgetText: {
-    fontSize: 15,
-    fontWeight: "600",
-  },
-  buttomContainer: {
-    width: "100%",
-  },
-  bottomContainer: {
-    marginTop: 10,
-    display: "flex",
-    flexDirection: "row",
+  formContainer: {
+    flex: 1,
     justifyContent: "center",
   },
-  signupText: {
-    marginLeft: 2,
-    color: colors.primary,
-    fontSize: 15,
-    fontWeight: "600",
+  title: {
+    fontSize: 28,
+    fontWeight: "bold",
+    color: colors.dark,
+    textAlign: "center",
+    marginBottom: 20,
   },
-  screenNameContainer: {
+  input: {
+    borderWidth: 1,
+    borderColor: colors.muted,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 10,
+    backgroundColor: "#fff",
+    color: colors.dark,
+  },
+  errorText: {
+    color: "red",
+    fontSize: 14,
+    marginBottom: 10,
+  },
+  button: {
+    backgroundColor: colors.primary,
+    padding: 15,
+    borderRadius: 8,
+    alignItems: "center",
     marginTop: 10,
-    width: "100%",
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "flex-start",
-    alignItems: "flex-start",
   },
-  screenNameText: {
-    fontSize: 30,
-    fontWeight: "800",
-    color: colors.muted,
+  buttonText: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "bold",
   },
-  screenNameParagraph: {
-    marginTop: 5,
-    fontSize: 15,
+  link: {
+    marginTop: 15,
+    color: colors.primary,
+    textAlign: "center",
+    fontSize: 16,
   },
 });

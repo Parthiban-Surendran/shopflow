@@ -5,6 +5,7 @@
 //  View,
 //  ScrollView,
 //  TouchableOpacity,
+//  Alert,
 //  RefreshControl,
 //} from "react-native";
 //import React, { useState, useEffect } from "react";
@@ -12,8 +13,11 @@
 //import { Ionicons } from "@expo/vector-icons";
 //import CustomAlert from "../../components/CustomAlert/CustomAlert";
 //import ProgressDialog from "react-native-progress-dialog";
-//import AsyncStorage from "@react-native-async-storage/async-storage";
+//import EncryptedStorage from 'react-native-encrypted-storage';
 //import WishList from "../../components/WishList/WishList";
+//import axios from "axios";
+//import CustomLoader from "../../components/CustomLoader";
+//
 //
 //const MyWishlistScreen = ({ navigation, route }) => {
 //  const { user } = route.params;
@@ -25,100 +29,89 @@
 //  const [wishlist, setWishlist] = useState([]);
 //  const [onWishlist, setOnWishlist] = useState(true);
 //
-//  //method to navigate to the product detail screen of the specific product
 //  const handleView = (product) => {
-//    navigation.navigate("productdetail", { product: product });
+//    navigation.navigate("productdetail", { product });
 //  };
 //
-//  //method the remove the authUser from Aysnc Storage and navigate back to login screen
-//  const logout = async () => {
-//    await AsyncStorage.removeItem("authUser");
-//    navigation.replace("login");
-//  };
 //
-//  //method call on pull refresh
 //  const handleOnRefresh = () => {
 //    setRefreshing(true);
 //    fetchWishlist();
 //    setRefreshing(false);
 //  };
 //
-//  //method to fetch the wishlist from server using API call
-//  const fetchWishlist = () => {
-//    var myHeaders = new Headers();
-//    myHeaders.append("x-auth-token", user.token);
-//
-//    var requestOptions = {
-//      method: "GET",
-//      headers: myHeaders,
-//      redirect: "follow",
-//    };
+//  const fetchWishlist = async () => {
 //    setIsloading(true);
-//    fetch(`${network.serverip}/wishlist`, requestOptions) // API call
-//      .then((response) => response.json())
-//      .then((result) => {
-//        //check if the token is expired
-//        if (result?.err === "jwt expired") {
-//          logout();
+//    try {
+//    const token = await EncryptedStorage.getItem("authToken")
+//    const userId = await EncryptedStorage.getItem("userid")
+//    console.log(token,userId)
+//      const response = await axios.get(
+//        `${network.serverip}/user/wishlist/viewWishlist?userId=${userId}`,
+//        {
+//          headers: {
+//            Authorization: `Bearer ${token}`,
+//            "Content-Type": "application/json",
+//          },
 //        }
-//        if (result.success) {
-//          setWishlist(result.data[0].wishlist);
-//          setError("");
-//        }
-//        setIsloading(false);
-//      })
-//      .catch((error) => {
-//        setIsloading(false);
-//        setError(error.message);
-//        console.log("error", error);
-//      });
+//      );
+//      console.log("LLL",response.data)
+//      if (response.status===200) {
+//        setWishlist(response.data.data.products);
+//        setError("");
+//      }
+//    } catch (error) {
+//      setError("Guest Cannot Access WishList");
+//    } finally {
+//      setIsloading(false);
+//    }
 //  };
 //
-//  //method to remove the item from wishlist using API call
-//  const handleRemoveFromWishlist = (id) => {
-//    var myHeaders = new Headers();
-//    myHeaders.append("x-auth-token", user.token);
+//  const handleAddOrRemoveFromWishlist = async (productId) => {
+//  const userId = await EncryptedStorage.getItem("userid")
+//  const token  = await EncryptedStorage.getItem("authToken")
 //
-//    var requestOptions = {
-//      method: "GET",
-//      headers: myHeaders,
-//      redirect: "follow",
-//    };
+//    try {
+//      const response = await axios.post(
+//             `${network.serverip}/user/wishlist/addOrRemoveItem`,{},
 //
-//    fetch(`${network.serverip}/remove-from-wishlist?id=${id}`, requestOptions)
-//      .then((response) => response.json())
-//      .then((result) => {
-//        if (result.success) {
-//          setError(result.message);
-//          setAlertType("success");
-//        } else {
-//          setError(result.message);
-//          setAlertType("error");
-//        }
-//        setOnWishlist(!onWishlist);
-//      })
-//      .catch((error) => {
-//        setError(result.message);
+//              {
+//                params: { userId, productId },
+//                headers: {
+//                  Authorization: `Bearer ${token}`,
+//                  "Content-Type": "application/json",
+//                },
+//              }
+//            );
+//      console.log(response.data)
+//      if (response.data.status === "success"){
+//      Alert.alert("Success",response.data.message)
+//        setError(response.data.message);
+//        setAlertType("success");
+//      } else {
+//        setError(response.data.message);
 //        setAlertType("error");
-//        console.log("error", error);
-//      });
+//      }
+//      setOnWishlist(!onWishlist);
+//    } catch (error) {
+//      setError(error.message);
+//      setAlertType("error");
+//    }
 //  };
 //
-//  //fetch the wishlist on initial render
 //  useEffect(() => {
 //    setError("");
 //    fetchWishlist();
 //  }, []);
 //
-//  //fetch the wishlist data from server whenever the value of onWishList change
 //  useEffect(() => {
 //    fetchWishlist();
 //  }, [onWishlist]);
 //
 //  return (
 //    <View style={styles.container}>
-//      <StatusBar></StatusBar>
-//      <ProgressDialog visible={isloading} label={label} />
+//      <StatusBar />
+//      <CustomLoader visible={isloading} autoClose={true} />
 //      <View style={styles.topBarContainer}>
 //        <TouchableOpacity
 //          onPress={() => {
@@ -131,54 +124,39 @@
 //            color={colors.muted}
 //          />
 //        </TouchableOpacity>
-//        <View></View>
-//        <TouchableOpacity onPress={() => handleOnRefresh()}>
-//          <Ionicons name="heart-outline" size={30} color={colors.primary} />
-//        </TouchableOpacity>
+//        <View />
+//
 //      </View>
 //      <View style={styles.screenNameContainer}>
-//        <View>
-//          <Text style={styles.screenNameText}>My Wishlist</Text>
-//        </View>
-//        <View>
-//          <Text style={styles.screenNameParagraph}>
-//            View , add or remove products from wishlist for later purchase
-//          </Text>
-//        </View>
+//        <Text style={styles.screenNameText}>My Wishlist</Text>
+//
 //      </View>
 //      <CustomAlert message={error} type={alertType} />
-//      {wishlist.length == 0 ? (
+//      {wishlist.length === 0 ? (
 //        <View style={styles.ListContiainerEmpty}>
 //          <Text style={styles.secondaryTextSmItalic}>
-//            "There are no product in wishlist yet."
+//            "Make your Wishlist here..."
 //          </Text>
 //        </View>
 //      ) : (
 //        <ScrollView
-//          style={{ flex: 1, width: "100%", padding: 20 }}
+//          style={styles.scrollView}
 //          showsVerticalScrollIndicator={false}
 //          refreshControl={
-//            <RefreshControl
-//              refreshing={refeshing}
-//              onRefresh={handleOnRefresh}
-//            />
+//            <RefreshControl refreshing={refeshing} onRefresh={handleOnRefresh} />
 //          }
 //        >
-//          {wishlist.map((list, index) => {
-//            return (
-//              <WishList
-//                image={`${network.serverip}/uploads/${list?.productId?.image}`}
-//                title={list?.productId?.title}
-//                description={list?.productId?.description}
-//                key={index}
-//                onPressView={() => handleView(list?.productId)}
-//                onPressRemove={() =>
-//                  handleRemoveFromWishlist(list?.productId?._id)
-//                }
-//              />
-//            );
-//          })}
-//          <View style={styles.emptyView}></View>
+//          {wishlist.map((list, index) => (
+//            <WishList
+//              image={list?.product?.image}
+//              title={list?.product?.name}
+//              description={list?.product?.description}
+//              key={index}
+//              onPressView={() => handleView(list?.product)}
+//              onPressRemove={() => handleAddOrRemoveFromWishlist(list?.product.id)}
+//            />
+//          ))}
+//          <View style={styles.emptyView} />
 //        </ScrollView>
 //      )}
 //    </View>
@@ -190,23 +168,16 @@
 //const styles = StyleSheet.create({
 //  container: {
 //    width: "100%",
-//    flexDirecion: "row",
+//    flexDirection: "column",
 //    backgroundColor: colors.light,
-//    alignItems: "center",
-//    justifyContent: "flex-start",
 //    flex: 1,
 //  },
 //  topBarContainer: {
 //    width: "100%",
-//    display: "flex",
 //    flexDirection: "row",
 //    justifyContent: "space-between",
 //    alignItems: "center",
 //    padding: 20,
-//  },
-//  toBarText: {
-//    fontSize: 15,
-//    fontWeight: "600",
 //  },
 //  screenNameContainer: {
 //    padding: 20,
@@ -227,20 +198,13 @@
 //    marginTop: 5,
 //    fontSize: 15,
 //  },
-//  bodyContainer: {
-//    width: "100%",
-//    flexDirecion: "row",
-//    backgroundColor: colors.light,
-//    alignItems: "center",
-//    justifyContent: "flex-start",
+//  scrollView: {
 //    flex: 1,
-//  },
-//  emptyView: {
-//    height: 20,
+//    width: "100%",
+//    padding: 20,
 //  },
 //  ListContiainerEmpty: {
 //    width: "100%",
-//    display: "flex",
 //    justifyContent: "center",
 //    alignItems: "center",
 //    flex: 1,
@@ -250,8 +214,10 @@
 //    fontSize: 15,
 //    color: colors.muted,
 //  },
+//  emptyView: {
+//    height: 20,
+//  },
 //});
-
 
 
 
@@ -262,6 +228,7 @@ import {
   View,
   ScrollView,
   TouchableOpacity,
+  Alert,
   RefreshControl,
 } from "react-native";
 import React, { useState, useEffect } from "react";
@@ -269,9 +236,10 @@ import { colors, network } from "../../constants";
 import { Ionicons } from "@expo/vector-icons";
 import CustomAlert from "../../components/CustomAlert/CustomAlert";
 import ProgressDialog from "react-native-progress-dialog";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import EncryptedStorage from 'react-native-encrypted-storage';
 import WishList from "../../components/WishList/WishList";
 import axios from "axios";
+import CustomLoader from "../../components/CustomLoader";
 
 const MyWishlistScreen = ({ navigation, route }) => {
   const { user } = route.params;
@@ -282,11 +250,11 @@ const MyWishlistScreen = ({ navigation, route }) => {
   const [error, setError] = useState("");
   const [wishlist, setWishlist] = useState([]);
   const [onWishlist, setOnWishlist] = useState(true);
+  const [authToken, setAuthToken] = useState(null);
 
   const handleView = (product) => {
-    navigation.navigate("productdetail", { product: product });
+    navigation.navigate("productdetail", { product });
   };
-
 
   const handleOnRefresh = () => {
     setRefreshing(true);
@@ -297,10 +265,18 @@ const MyWishlistScreen = ({ navigation, route }) => {
   const fetchWishlist = async () => {
     setIsloading(true);
     try {
-    const token = await AsyncStorage.getItem("authToken")
-    const userId = await AsyncStorage.getItem("userid")
+      const token = await EncryptedStorage.getItem("authToken");
+      setAuthToken(token);
+
+      if (!token) {
+      Alert.alert("Alert","Guest Users Cannot have Wishlist")
+        setError("Guest users cannot access the wishlist.");
+        return;
+      }
+
+      const userId = await EncryptedStorage.getItem("userid");
       const response = await axios.get(
-        `https://shopflow-1.onrender.com/user/wishlist/viewWishlist?userId=${user.id}`,
+        `${network.serverip}/user/wishlist/viewWishlist?userId=${userId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -308,41 +284,41 @@ const MyWishlistScreen = ({ navigation, route }) => {
           },
         }
       );
-      console.log("wishlist::::", response.data);
-    console.log(response.status)
-      if (response.status===200) {
-      console.log("entered")
+
+      if (response.status === 200) {
         setWishlist(response.data.data.products);
-        console.log("ppp",wishlist)
         setError("");
       }
     } catch (error) {
-      setError(error.message);
-      console.log("error", error);
+      setError("Failed to fetch wishlist.");
     } finally {
       setIsloading(false);
     }
   };
 
   const handleAddOrRemoveFromWishlist = async (productId) => {
+    if (!authToken) {
+      setError("Guest users cannot add/remove items from the wishlist.");
+      return;
+    }
+
+    const userId = await EncryptedStorage.getItem("userid");
+
     try {
-    console.log("entered")
       const response = await axios.post(
-        "https://shopflow-1.onrender.com/user/wishlist/addOrRemoveItem",
+        `${network.serverip}/user/wishlist/addOrRemoveItem`,
         {},
         {
-          params: {
-            userId: user.id,
-            productId: productId,
-          },
+          params: { userId, productId },
           headers: {
-            Authorization: `Bearer ${user.token}`,
+            Authorization: `Bearer ${authToken}`,
             "Content-Type": "application/json",
           },
         }
       );
-      console.log(user.id,productId,token)
-      if (response.data.success) {
+
+      if (response.data.status === "success") {
+        Alert.alert("Success", response.data.message);
         setError(response.data.message);
         setAlertType("success");
       } else {
@@ -353,7 +329,6 @@ const MyWishlistScreen = ({ navigation, route }) => {
     } catch (error) {
       setError(error.message);
       setAlertType("error");
-      console.log("error", error);
     }
   };
 
@@ -369,7 +344,7 @@ const MyWishlistScreen = ({ navigation, route }) => {
   return (
     <View style={styles.container}>
       <StatusBar />
-      <ProgressDialog visible={isloading} label={label} />
+      <CustomLoader visible={isloading} autoClose={true} />
       <View style={styles.topBarContainer}>
         <TouchableOpacity
           onPress={() => {
@@ -383,16 +358,16 @@ const MyWishlistScreen = ({ navigation, route }) => {
           />
         </TouchableOpacity>
         <View />
-        <TouchableOpacity onPress={() => handleOnRefresh()}>
-          <Ionicons name="heart-outline" size={30} color={colors.primary} />
-        </TouchableOpacity>
       </View>
       <View style={styles.screenNameContainer}>
         <Text style={styles.screenNameText}>My Wishlist</Text>
-
       </View>
       <CustomAlert message={error} type={alertType} />
-      {wishlist.length === 0 ? (
+      {error ? (
+        <View style={styles.ListContiainerEmpty}>
+          <Text style={styles.secondaryTextSmItalic}>{error}</Text>
+        </View>
+      ) : wishlist.length === 0 ? (
         <View style={styles.ListContiainerEmpty}>
           <Text style={styles.secondaryTextSmItalic}>
             "Make your Wishlist here..."
@@ -412,7 +387,7 @@ const MyWishlistScreen = ({ navigation, route }) => {
               title={list?.product?.name}
               description={list?.product?.description}
               key={index}
-              onPressView={() => handleView(list?.product?.id)}
+              onPressView={() => handleView(list?.product)}
               onPressRemove={() => handleAddOrRemoveFromWishlist(list?.product.id)}
             />
           ))}

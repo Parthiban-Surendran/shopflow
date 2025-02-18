@@ -1,12 +1,19 @@
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View,Image } from "react-native";
 import React from "react";
+import { Ionicons } from "@expo/vector-icons"; // Make sure Ionicons is imported
 import { colors } from "../../constants";
 
-const UserProfileCard = ({ Icon, name, email }) => {
+const UserProfileCard = ({ imageUrl, name, email }) => {
   return (
     <View style={styles.Container}>
       <View style={styles.avatarContainer}>
-        <Icon name="person" size={80} color={colors.primary} />
+        {imageUrl ? (
+          // Display image if available
+          <Image source={{ uri: imageUrl }} style={styles.avatarImage} />
+        ) : (
+          // Display Ionicons icon if no image
+          <Ionicons name="person" size={80} color={colors.primary} />
+        )}
       </View>
       <View style={styles.infoContainer}>
         <Text style={styles.usernameText}>{name}</Text>
@@ -26,25 +33,29 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     alignItems: "center",
   },
-  avatarContainer: {
-    display: "flex",
-    width: "40%",
+      avatarContainer: {
+        display: "flex",
+        width: "40%",
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: colors.light,
+        borderRadius: 20,
+        padding: 30,
+      },
+  avatarImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40, // For round image
+    borderColor:"#333",
+    borderWidth:2,
 
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: colors.primary_light,
-    borderRadius: 20,
-    padding: 10,
   },
   infoContainer: {
     display: "flex",
     width: "50%",
-
     justifyContent: "space-between",
     alignItems: "flex-start",
     backgroundColor: colors.light,
-
-    paddingLeft: 10,
   },
   usernameText: {
     fontWeight: "bold",

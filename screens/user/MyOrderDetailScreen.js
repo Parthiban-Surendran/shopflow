@@ -78,11 +78,12 @@ const MyOrderDetailScreen = ({ navigation, route }) => {
     return newDate;
   };
 
+
   // set total cost, order detail, order status on initial render
   useEffect(() => {
     setError("");
     setAlertType("error");
-    if (orderDetail?.status == "delivered") {
+    if (orderDetail?.orderStatus == "CONFIRMED") {
       setStatusDisable(true);
     } else {
       setStatusDisable(false);
@@ -96,9 +97,7 @@ const MyOrderDetailScreen = ({ navigation, route }) => {
         orderDetail?.shippingAddress
     );
     setTotalCost(
-      orderDetail?.items.reduce((accumulator, object) => {
-        return (accumulator + object.price) * object.quantity;
-      }, 0)
+      orderDetail.total
     );
     if (orderDetail?.status === "pending") {
       setTrackingState(1);
@@ -108,6 +107,44 @@ const MyOrderDetailScreen = ({ navigation, route }) => {
       setTrackingState(3);
     }
   }, []);
+
+  const cancelOrder = async (orderId, productId) => {
+    try {
+      setIsloading(true);
+      setLabel("Cancelling...");
+
+      const response = await fetch(`${network.serverip}/user/order/cancelOrder`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ orderId, productId }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setError("Order cancelled successfully!");
+        setAlertType("success");
+
+        // Update UI by filtering out the cancelled product
+        setOrderDetail(prevState => ({
+          ...prevState,
+          items: prevState.items.filter(item => item.productId !== productId)
+        }));
+
+      } else {
+        setError(data.message || "Failed to cancel order");
+        setAlertType("error");
+      }
+    } catch (error) {
+      setError("Something went wrong!");
+      setAlertType("error");
+    } finally {
+      setIsloading(false);
+    }
+  };
+
 
   return (
     <View style={styles.container}>
@@ -122,43 +159,30 @@ const MyOrderDetailScreen = ({ navigation, route }) => {
           <Ionicons
             name="arrow-back-circle-outline"
             size={30}
-            color={colors.muted}
+            color={colors.primary}
           />
         </TouchableOpacity>
-      </View>
+
       <View style={styles.screenNameContainer}>
-        <View>
-          <Text style={styles.screenNameText}>Order Detials</Text>
-        </View>
-        <View>
-          <Text style={styles.screenNameParagraph}>
-            View all detail about order
-          </Text>
-        </View>
+             <Text style={styles.screenNameText}>Order Details</Text>
+      </View>
       </View>
       <CustomAlert message={error} type={alertType} />
       <ScrollView
         style={styles.bodyContainer}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.containerNameContainer}>
-          <View>
-            <Text style={styles.containerNameText}>Shipping Address</Text>
-          </View>
-        </View>
-        <View style={styles.ShipingInfoContainer}>
-          <Text style={styles.secondarytextSm}>{address}</Text>
-          <Text style={styles.secondarytextSm}>{orderDetail?.zipcode}</Text>
-        </View>
+
+
         <View>
           <Text style={styles.containerNameText}>Order Info</Text>
         </View>
         <View style={styles.orderInfoContainer}>
           <Text style={styles.secondarytextMedian}>
-            Order # {orderDetail?.orderId}
+            Order # {orderDetail?.items[0].orderId}
           </Text>
           <Text style={styles.secondarytextSm}>
-            Ordered on {dateFormat(orderDetail?.updatedAt)}
+            Ordered on {dateFormat(orderDetail?.orderDate)}
           </Text>
           {orderDetail?.shippedOn && (
             <Text style={styles.secondarytextSm}>
@@ -192,7 +216,7 @@ const MyOrderDetailScreen = ({ navigation, route }) => {
           </View>
           <View style={styles.orderItemContainer}>
             <Text style={styles.orderItemText}>
-              Order on : {orderDetail?.updatedAt}
+              Order on : {orderDetail?.orderDate}
             </Text>
           </View>
           <ScrollView
@@ -202,16 +226,24 @@ const MyOrderDetailScreen = ({ navigation, route }) => {
             {orderDetail?.items.map((product, index) => (
               <View key={index}>
                 <BasicProductList
-                  title={product?.productId?.title}
-                  price={product?.price}
+                image={product?.image}
+                  title={product?.productName}
+                  price={product?.offerPrice}
                   quantity={product?.quantity}
                 />
+                <TouchableOpacity
+                      style={styles.cancelButton}
+                      onPress={() => cancelOrder(orderDetail?.orderId, product?.id)}
+                    >
+                          <Text style={styles.cancelButtonText}>Cancel</Text>
+
+                    </TouchableOpacity>
               </View>
             ))}
           </ScrollView>
           <View style={styles.orderItemContainer}>
             <Text style={styles.orderItemText}>Total</Text>
-            <Text>{totalCost}$</Text>
+            <Text>{": "+totalCost.toFixed(2)}$</Text>
           </View>
         </View>
         <View style={styles.emptyView}></View>
@@ -228,7 +260,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.light,
     alignItems: "center",
     justifyContent: "center",
-    padding: 20,
+
     paddingBottom: 0,
     flex: 1,
   },
@@ -236,29 +268,31 @@ const styles = StyleSheet.create({
     width: "100%",
     display: "flex",
     flexDirection: "row",
+    height:70,
     justifyContent: "space-between",
     alignItems: "center",
+    backgroundColor:"#111827",
+    padding:10,
   },
 
   screenNameContainer: {
-    marginTop: 10,
     width: "100%",
     display: "flex",
-    flexDirection: "column",
     justifyContent: "flex-start",
-    alignItems: "flex-start",
-    marginBottom: 5,
+    marginLeft:20,
+
   },
   screenNameText: {
-    fontSize: 30,
-    fontWeight: "800",
-    color: colors.muted,
+    fontSize: 22,
+    fontWeight: "600",
+    color: colors.primary,
   },
   screenNameParagraph: {
     marginTop: 10,
     fontSize: 15,
+
   },
-  bodyContainer: { flex: 1, width: "100%", padding: 5 },
+  bodyContainer: { flex: 1, width: "100%", padding: 10,},
   ShipingInfoContainer: {
     marginTop: 5,
     display: "flex",
@@ -306,7 +340,7 @@ const styles = StyleSheet.create({
     width: "100%",
     display: "flex",
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "sorderItemContainerpace-between",
     alignItems: "center",
   },
   orderItemText: {
